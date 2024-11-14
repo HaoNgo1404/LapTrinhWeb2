@@ -26,5 +26,9 @@ namespace LapTrinhWeb.Controllers
 
             return View();
         }
+        public ActionResult GioHang()
+        {
+            return View();
+        }
     }
 }
