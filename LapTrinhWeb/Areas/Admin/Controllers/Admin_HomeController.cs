@@ -4,10 +4,11 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace LapTrinhWeb.Controllers
+namespace LapTrinhWeb.Areas.Admin.Controllers
 {
-    public class HomeController : Controller
+    public class Admin_HomeController : Controller
     {
+        // GET: Admin/Admin_Home
         public ActionResult Index()
         {
             return View();

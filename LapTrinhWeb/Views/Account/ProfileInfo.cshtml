@@ -1,0 +1,49 @@
+﻿@model LapTrinhWeb.Models.ViewModel.RegisterVM
+
+@{
+    ViewBag.Title = "Thông tin tài khoản";
+    Layout = "~/Views/Shared/_MasterLayout.cshtml";
+}
+
+<h2 style="color:black; text-align:center">Thông tin tài khoản</h2>
+@using (Html.BeginForm("ProfileInfo", "Account", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <dl class="dl-horizontal">
+        <dt>
+            <label>Tên khách hàng</label>
+        </dt>
+        <dd>
+            @Html.TextBoxFor(m => m.CustomerName, new { @class = "form-control", @style = "width: 40%", @readonly = "readonly" })
+        </dd>
+
+        <dt>
+            <label>Số điện thoại</label>
+        </dt>
+        <dd>
+            @Html.TextBoxFor(m => m.CustomerPhone, new { @class = "form-control", @style = "width: 40%", @readonly = "readonly" })
+        </dd>
+        <dt>
+            <label>Email</label>
+        </dt>
+        <dd>
+            @Html.TextBoxFor(m => m.CustomerEmail, new { @class = "form-control", @style = "width: 40%", @readonly = "readonly" })
+        </dd>
+        <dt>
+            <label>Địa chỉ</label>
+        </dt>
+        <dd>
+            @Html.TextBoxFor(m => m.CustomerAddress, new { @class = "form-control", @style = "width: 40%", @readonly = "readonly" })
+        </dd>
+    </dl>
+
+    <p>
+        <a href="@Url.Action("UpdateProfile", "Account", new { id = Model.CustomerID })" role="button" class="btn btn-secondary">Cập nhật</a> |
+        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Quay lại</a>
+    </p>
+
+    if (ViewBag.Message != null)
+    {
+        <p class="text-success">@ViewBag.Message</p>
+    }
+}
