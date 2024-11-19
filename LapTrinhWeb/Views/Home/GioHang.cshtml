@@ -1,0 +1,309 @@
+﻿
+@{
+    ViewBag.Title = "GioHang";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    body {
+        background-color: #4B7864;
+        text-align: center;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+        a:hover {
+            color: white;
+        }
+
+    .no-border {
+        border: none;
+        background: transparent;
+        text-align: center;
+        width: 100px;
+    }
+
+    .cart-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cart-left {
+        width: 60%;
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-right {
+        width: 35%;
+        background-color: #fafafa;
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: left;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .button {
+        font-size: 20px;
+        float: right;
+        margin-top: 10px;
+        margin-right: 150px;
+        margin-bottom: 10px;
+    }
+
+    th {
+        text-align: center;
+        color: #333333;
+    }
+
+    img {
+        width: 80px;
+        height: 60px;
+    }
+
+    /* Nút bấm */
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #218838;
+        }
+
+    /* Tổng tiền và tổng số lượng */
+    #grandTotal, #totalQuantity, #orderGrandTotal {
+        font-weight: bold;
+        color: #333333;
+    }
+</style>
+
+<div class="cart-container">
+    <!-- Phần giỏ hàng bên trái -->
+    <div class="cart-left">
+        <h1>Giỏ Hàng</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Hình Ảnh</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Giá tiền</th>
+                    <th>Số Lượng</th>
+                    <th>Thành Tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><img src="~/Content/images/sp1.png" /></td>
+                    <td>Cà phê đen</td>
+                    <td>
+                        <input type="text" id="iPrice1" name="Price" value="20000" readonly class="no-border" />
+                    </td>
+                    <td>
+                        <input type="number" id="iQuantity1" name="Quantity" value="0" min="0" max="15" oninput="CalculateTotal();" />
+                    </td>
+                    <td>
+                        <label id="lbTotal1"></label>
+                    </td>
+                    <td>
+                        <button type="button" onclick="removeProduct(this)">Xóa</button>
+                    </td>
+                </tr>
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right; font-weight: bold;">Tổng tiền:</td>
+                    <td><label id="grandTotal">0</label></td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align: right; font-weight: bold;">Tổng số lượng sản phẩm:</td>
+                    <td><label id="totalQuantity">0</label></td>
+                </tr>
+                <tr>
+                    <td colspan="5" style="text-align: right;">
+                        <button type="button" class="btn btn-primary" onclick="addNewProduct()">Thêm sản phẩm mới</button>
+                    </td>
+                </tr>
+            </tfoot>
+
+        </table>
+    </div>
+
+    <!-- Bảng thông tin chi tiết sản phẩm bên phải -->
+    <div class="cart-right">
+        <h3>Thông tin đơn hàng</h3>
+        <p><strong>Tổng tiền:</strong> <span id="orderGrandTotal">0</span> VNĐ</p>
+        <p>
+            <label for="address">Địa chỉ:</label>
+            <input type="text" id="address" placeholder="Nhập địa chỉ của bạn" style="width: 100%;" />
+        </p>
+        <p>
+            <label for="phone">Số điện thoại:</label>
+            <input type="text" id="phone" placeholder="Nhập số điện thoại của bạn" style="width: 100%;" />
+        </p>
+        <button type="submit" class="btn btn-success" onclick="ConfirmPayment()">Thanh toán</button>
+    </div>
+</div>
+
+
+<script language="Javascript">
+    let numrows = 2; // Số dòng sản phẩm hiện tại trong giỏ hàng
+
+    function CalculateTotal() {
+        let grandTotal = 0; // Biến để lưu tổng tiền của tất cả sản phẩm
+        let totalQuantity = 0; // Biến để lưu tổng số lượng sản phẩm
+
+        // Lấy tất cả các dòng trong bảng
+        const rows = document.querySelectorAll(".table tbody tr");
+        rows.forEach((row, index) => {
+            const priceElement = row.querySelector(`[id^="iPrice"]`);
+            const quantityElement = row.querySelector(`[id^="iQuantity"]`);
+            const totalLabel = row.querySelector(`[id^="lbTotal"]`);
+
+            if (priceElement && quantityElement && totalLabel) {
+                const price = parseFloat(priceElement.value) || 0;
+                const quantity = parseFloat(quantityElement.value) || 0;
+
+                // Kiểm tra giá trị hợp lệ
+                if (isNaN(price) || price <= 0 || isNaN(quantity) || quantity < 1 || quantity > 15) {
+                    totalLabel.innerText = " ";
+                    return;
+                }
+
+                // Tính toán và hiển thị thành tiền
+                const total = price * quantity;
+                totalLabel.innerText = total.toFixed(0);
+
+                grandTotal += total;
+                totalQuantity += quantity;
+            }
+        });
+
+        // Hiển thị tổng tiền và tổng số lượng
+        document.getElementById("grandTotal").innerText = grandTotal.toFixed(0);
+        document.getElementById("orderGrandTotal").innerText = grandTotal.toFixed(0);
+        document.getElementById("totalQuantity").innerText = totalQuantity;
+    }
+
+    function ConfirmPayment() {
+        let total = parseFloat(document.getElementById("grandTotal").innerText);
+        let address = document.getElementById("address").value.trim();
+        let phone = document.getElementById("phone").value.trim();
+
+        if (total <= 0) {
+            alert("Thanh toán thất bại! Vui lòng nhập số lượng và kiểm tra tổng tiền trước khi thanh toán.");
+            return;
+        }
+
+        if (address === "") {
+            alert("Vui lòng nhập địa chỉ của bạn.");
+            return;
+        }
+
+        if (phone === "") {
+            alert("Vui lòng nhập số điện thoại của bạn.");
+            return;
+        }
+
+        alert("Thanh toán thành công! Cảm ơn bạn đã mua sản phẩm của chúng tôi.");
+
+        // Đặt lại các giá trị sau khi thanh toán
+        const rows = document.querySelectorAll(".table tbody tr");
+        rows.forEach(row => {
+            row.querySelector(`[id^="iQuantity"]`).value = 0;
+            row.querySelector(`[id^="lbTotal"]`).innerText = " ";
+        });
+
+        document.getElementById("grandTotal").innerText = "0";
+        document.getElementById("orderGrandTotal").innerText = "0";
+        document.getElementById("totalQuantity").innerText = "0";
+        document.getElementById("address").value = "";
+        document.getElementById("phone").value = "";
+
+        CalculateTotal(); // Gọi lại để làm mới tất cả
+    }
+
+    document.addEventListener('DOMContentLoaded', CalculateTotal);
+
+    function selectProduct(obj) {
+        var errMsg = document.getElementById("err_msg");
+        var value = obj.value;
+        if (value == '') {
+            errMsg.innerHTML = "Hãy chọn sản phẩm";
+        } else {
+            errMsg.innerHTML = ""; // Xóa thông báo lỗi nếu đã chọn sản phẩm
+        }
+    }
+
+    function addNewProduct() {
+        const name = prompt("Nhập tên sản phẩm:");
+        const price = prompt("Nhập giá sản phẩm:");
+        const imageUrl = prompt("Nhập URL hình ảnh sản phẩm:");
+
+        // Kiểm tra nếu người dùng đã nhập đủ thông tin
+        if (name && price && imageUrl) {
+            numrows++; // Tăng số lượng hàng khi thêm sản phẩm mới
+
+            let table = document.querySelector(".table tbody");
+            let newRow = document.createElement("tr");
+
+            newRow.innerHTML = `
+            <td><img src="${imageUrl}" /></td>
+            <td>${name}</td>
+            <td>
+                <input type="text" id="iPrice${numrows}" name="Price" value="${price}" readonly class="no-border" />
+            </td>
+            <td>
+                <input type="number" id="iQuantity${numrows}" name="Quantity" value="0" min="0" max="15" oninput="CalculateTotal();" />
+            </td>
+            <td>
+                <label id="lbTotal${numrows}"></label>
+            </td>
+            <td>
+                <button type="button" onclick="removeProduct(this)">Xóa</button>
+            </td>
+        `;
+
+            table.appendChild(newRow); // Thêm dòng mới vào bảng
+        } else {
+            alert("Vui lòng nhập đầy đủ thông tin sản phẩm."); // Thông báo khi không nhập đủ thông tin
+        }
+    }
+
+    function removeProduct(button) {
+        const row = button.parentElement.parentElement;
+        row.remove(); // Xóa dòng sản phẩm
+        numrows--; // Giảm số lượng hàng
+        CalculateTotal(); // Cập nhật tổng tiền và tổng số lượng
+    }
+</script>
+
+
